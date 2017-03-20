@@ -18,21 +18,28 @@ HEIGHT = 25
 class PlayerConnection:
     
     name = ""
-    initialized = False
+    active = False
     data = ""
-    
+    score = 0 # todo: store this somewhere else
 
+#class Player:
+    
+    #def __init__(self, name, connection):
+        #self.score = 0
+        #self.name = name
+        #self.connection = connection
+    
+    #def isConnected(self):
+        #return self.connection.active
 
 class TronGame:
     
     def __init__(self):
         
-        #self.buff = Buffer()
         self.serv = server.Server(self.newConnection, self.receive, self.close)
         
         self.connections = {}
-        
-        self.scores = {}
+        self.players = {}
         
     def start(self, address="/tmp/tron_socket"):
         self.serv.start(address)
@@ -49,7 +56,9 @@ class TronGame:
         readydate = time.time()
         while True:
             
-            for name, command in self.getInput().items():
+            for c in self.connections.values():
+                command = c.data
+                name = c.name
                 if name not in self.game.players:
                     self.game.makePlayer(name)
                 
@@ -78,19 +87,20 @@ class TronGame:
             time.sleep(0.2)
     
     def update(self):
-    
-        commands = self.getInput()
-        #self.flushInput()
-        for player, command in commands.items():
-            
+        
+        for c in self.connections.values():
+            command = c.data
+            player = c.name
             if command and player in self.game.players:
                 controller = self.game.getController(player)
-                
-                #validCommands = list(set(command) & {"north", "south", "east", "west"})
-                
-                controller["move"] =  command if command in {"north", "south", "east", "west"} else ""
+                controller["move"] = command if command in {"north", "south", "east", "west"} else ""
         
+        lastCount = self.game.countPlayers()
         self.game.update()
+        if self.game.countPlayers() < lastCount:
+            for c in self.connections.values():
+                if c.name in self.game.players:
+                    c.score += 1
         
         self.sendState()
     
@@ -102,7 +112,8 @@ class TronGame:
             "type": "update",
             "field": output,
             "width": WIDTH,
-            "height": HEIGHT
+            "height": HEIGHT,
+            "players": {c.name: c.score for c in self.connections.values() if c.active}
         }
         
         self.serv.broadcast(bytes(json.dumps(data), 'utf-8'))
@@ -111,29 +122,40 @@ class TronGame:
         self.connections[n] = PlayerConnection()
     
     def receive(self, n, data):
-        data = data.decode('utf-8')
+        data = json.loads(data.decode('utf-8'))
         c = self.connections[n]
-        if not c.initialized:
-            
-            c.name = data
-            c.initialized = True
-            print("new player: "+c.name)
-        else:
-            c.data = data
+        if "name" in data:
+            name = data["name"]
+            if name in self.getNames():
+                self.serv.send(n, bytes(json.dumps({"error":"nametaken"}), "utf-8"))
+            else:
+                c.name = name
+                c.active = True
+                #if c.name in self.players:
+                    #self.players[name].connection = n
+                #else:
+                    #self.players[name] = Player(name, n)
+                print("new player: "+c.name)
+        if "input" in data:
+            c.data = data["input"]
     
-    def getInput(self):
-        # return a dict of players and the commands since flushInput was called
-        return {p.name: p.data for p in self.connections.values() if p.initialized}
+    
+    def getNames(self):
+        return {p.name for p in self.connections.values()}
     
     def close(self, connection):
-        if self.game and self.connections[connection]:
-            print("player "+self.connections[connection].name+" left")
+        if self.game and connection in self.connections:
             self.game.removePlayer(self.connections[connection].name)
+            print("player "+self.connections[connection].name+" left")
+            #self.connections[connection].active = False
             del self.connections[connection]
         
+
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--socket', help='The socket file to listen to. Use this is the default socket exists already. Defaults to /tmp/tron_socket', default="/tmp/tron_socket")
+    parser.add_argument('-s', '--socket', help='The socket file to listen to. Use this if the default socket exists already. Defaults to /tmp/tron_socket', default="/tmp/tron_socket")
     args = parser.parse_args()
     
     TronGame().start(args.socket)

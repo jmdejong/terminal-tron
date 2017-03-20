@@ -49,6 +49,8 @@ class Server:
                 data = varmsglen.receive(connection) #connection.recv(MESSAGE_SIZE)
             except socket.error:
                 break
+            if not len(data):
+                break
         self.connections.discard(connection)
         self.onConnectionClose(connection)
     

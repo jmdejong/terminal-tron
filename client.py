@@ -1,8 +1,12 @@
 #! /usr/bin/python3
 
+import sys
+
+if sys.version_info[0] < 3:
+    print("This game is written in python 3.\nRun 'python3 client.py' or './client.py'")
+
 import curses
 import socket
-import sys
 import threading
 #import logging
 import varmsglen
@@ -40,13 +44,25 @@ class Screen:
     
     def __init__(self, stdscr):
         curses.curs_set(0)
-        height, width = stdscr.getmaxyx()
+        self.height, self.width = stdscr.getmaxyx()
         self.stdscr = stdscr
+        self.fieldpad = curses.newpad(100,200)
+        self.playerpad = curses.newpad(100,100)
     
     
-    def put(self, string, x=0, y=0):
-        self.stdscr.addstr(y, x, string)
-        self.stdscr.refresh()
+    def put(self, field):
+        self.fieldpad.clear()
+        self.fieldpad.addstr(0, 0, field)
+        self.height, self.width = self.stdscr.getmaxyx()
+        self.fieldpad.refresh(0,0,0,0,self.height-1,self.width-1)
+        
+    def putPlayers(self, players, x=0, y=0):
+        self.playerpad.clear()
+        self.playerpad.addstr(0, 0, players)
+        self.height, self.width = self.stdscr.getmaxyx()
+        #print(x, y, self.width, self.height)
+        if x < self.width and y < self.height:
+            self.playerpad.refresh(0,0,y,x,self.height-1,self.width-1)
 
 
 class Client:
@@ -61,15 +77,18 @@ class Client:
         
         self.connection = Connection()
         self.connection.connect(address)
-        self.connection.send(name)
+        self.connection.send(json.dumps({"name":name}))
         
-        threading.Thread(target=self.command_loop).start()
-        self.connection.listen(self.update, self.close)
+        self.fieldWidth = 0
+        self.fieldHeight = 0
+        
+        threading.Thread(target=self.listen, daemon=True).start()
+        self.command_loop()
     
     def listen(self):
-        self.connection.listen(self.update)
+        self.connection.listen(self.update, self.close)
     
-    def close(self, err):
+    def close(self, err=None):
         self.keepalive = False
         sys.exit()
     
@@ -77,7 +96,20 @@ class Client:
         if not self.keepalive:
             sys.exit()
         data = json.loads(data.decode('utf-8'))
-        self.screen.put(data['field'])
+        if 'error' in data:
+            if data['error'] == "nametaken":
+                print("error: name is already taken", file=sys.stderr)
+                self.close()
+        if 'field' in data:
+            self.screen.put(data['field'])
+        if 'players' in data:
+            players = [(score, name) for name, score in data['players'].items()]
+            players.sort(key=lambda p: -p[0])
+            self.screen.putPlayers('\n'.join("%4d %s" % p for p in players), self.fieldWidth)
+        if 'width' in data:
+            self.fieldWidth = data['width']
+        if 'height' in data:
+            self.fieldHeight = data['height']
     
     def command_loop(self):
         
@@ -88,7 +120,7 @@ class Client:
             if key == ord('q'):
                 self.keepalive = False
             if chr(key) in commands:
-                self.connection.send(commands[chr(key)])
+                self.connection.send(json.dumps({"input":commands[chr(key)]}))
 
 
 def main(stdscr):

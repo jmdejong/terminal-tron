@@ -54,7 +54,7 @@ class Screen:
         self.fieldpad.clear()
         self.fieldpad.addstr(0, 0, field)
         self.height, self.width = self.stdscr.getmaxyx()
-        self.fieldpad.refresh(0,0,0,0,self.height-1,self.width-1)
+        self.fieldpad.noutrefresh(0,0,0,0,self.height-1,self.width-1)
         
     def putPlayers(self, players, x=0, y=0):
         self.playerpad.clear()
@@ -62,7 +62,10 @@ class Screen:
         self.height, self.width = self.stdscr.getmaxyx()
         #print(x, y, self.width, self.height)
         if x < self.width and y < self.height:
-            self.playerpad.refresh(0,0,y,x,self.height-1,self.width-1)
+            self.playerpad.noutrefresh(0,0,y,x,self.height-1,self.width-1)
+    
+    def refresh(self):
+        curses.doupdate()
 
 
 class Client:
@@ -110,6 +113,7 @@ class Client:
             self.fieldWidth = data['width']
         if 'height' in data:
             self.fieldHeight = data['height']
+        self.screen.refresh()
     
     def command_loop(self):
         

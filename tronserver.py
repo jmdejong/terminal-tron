@@ -155,7 +155,7 @@ class TronGame:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--socket', help='The socket file to listen to. Use this if the default socket exists already. Defaults to /tmp/tron_socket', default="/tmp/tron_socket")
+    parser.add_argument('-s', '--socket', help='The socket file to listen to. Use this if the default socket exists already.\nWARNING: if the given file exists it will be overwritten.\nDefaults to /tmp/tron_socket', default="/tmp/tron_socket")
     args = parser.parse_args()
     
     TronGame().start(args.socket)

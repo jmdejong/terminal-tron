@@ -74,9 +74,9 @@ class Player:
     x = 0
     y = 0
     name = "gronald"
-    char = 'Ẋ'
+    char = '@'
     size = 2
-    direction = "north"
+    direction = None
     solid = False
     
     def __init__(self, x, y, field, game, name=None):
@@ -88,7 +88,7 @@ class Player:
         self.y = y
         self.field = field
         self.place(x, y)
-        self.direction = random.choice(["north", "south", "east", "west"])
+        #self.direction = random.choice(["north", "south", "east", "west"])
     
     def getControlInterface(self):
         return self.controller
@@ -108,9 +108,11 @@ class Player:
         
         if "move" in self.controller:
             direction = self.controller["move"]
-            if direction in {"north","south"} and self.direction in {"east","west"} or self.direction in {"north","south"} and direction in {"east","west"}:
+            if not self.direction or direction in {"north","south"} and self.direction in {"east","west"} or self.direction in {"north","south"} and direction in {"east","west"}:
                 self.direction = self.controller["move"]
-        self.controller.clear()
+        if self.direction not in {"north", "south", "east", "west"}:
+            self.direction = random.choice(["north", "south", "east", "west"])
+        #self.controller.clear()
         dx = (self.direction == "east") - (self.direction == "west")
         dy = (self.direction == "south") - (self.direction == "north")
         

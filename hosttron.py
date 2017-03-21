@@ -9,11 +9,11 @@ if sys.version_info[0] < 3:
 sys.path.append("./server/")
 sys.path.append("./shared/")
 
-import tronserver
+import trongame
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--socket', help='The socket file to listen to.\nThis is useful if another server is already using the default socket file or if it wasn\'t removed properly.\nWARNING: if the given file exists it will be overwritten.\nDefaults to /tmp/tron_socket', default="/tmp/tron_socket")
 args = parser.parse_args()
 
-tronserver.TronGame().start(args.socket)
+trongame.TronGame().start(args.socket)

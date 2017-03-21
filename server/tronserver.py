@@ -159,11 +159,12 @@ class TronGame:
     
     def close(self, connection):
         if connection in self.connections:
-            if self.game:
-                self.game.removePlayer(self.connections[connection].name)
-            print("player "+self.connections[connection].name+" left")
-            #self.connections[connection].initialized = False
+            name = self.connections[connection].name
             del self.connections[connection]
+            if self.game:
+                self.game.removePlayer(name)
+            print("player "+name+" left")
+            #self.connections[connection].initialized = False
         
 
 

@@ -4,6 +4,7 @@ import sys
 
 if sys.version_info[0] < 3:
     print("This game is written in python 3.\nRun 'python3 client.py' or './client.py'")
+    sys.exit(-1)
 
 import curses
 import socket
@@ -127,17 +128,22 @@ class Client:
                 self.connection.send(json.dumps({"input":commands[chr(key)]}))
 
 
-def main(stdscr):
+def main(name, socket):
+    
+    
+    def start(stdscr):
+        client = Client(stdscr, name, socket)
+    
+    curses.wrapper(start)
+    
+
+if __name__ == "__main__":
     
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--name', help='Your player name (must be unique!). Defaults to username', default=getpass.getuser())
     parser.add_argument('-s', '--socket', help='The socket file to connect to. Defaults to /tmp/tron_socket', default="/tmp/tron_socket")
     args = parser.parse_args()
     
-    
-    #name = getpass.getuser()
-    client = Client(stdscr, args.name, args.socket)
+    main(args.name, args.socket)
     
 
-
-curses.wrapper(main)

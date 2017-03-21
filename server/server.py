@@ -1,5 +1,5 @@
 
-
+import sys
 import socket
 import threading
 import os
@@ -17,13 +17,17 @@ class Server:
     
     def start(self, address):
         try:
-            os.unlink(address)
-        except OSError:
-            if os.path.exists(address):
-                raise
-        
-        self.sock.bind(address)
-        os.chmod(address, 511)
+            try:
+                os.unlink(address)
+            except OSError:
+                if os.path.exists(address):
+                    raise
+            
+            self.sock.bind(address)
+            os.chmod(address, 511)
+        except PermissionError:
+            print("You don't have permission to use this socket file.\nRun the server with the '-s' option to specify another socket file path.\nWARNING: if an existing file is given, it will be overwritten.")
+            sys.exit(-1)
         
         self.sock.listen()
         

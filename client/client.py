@@ -118,14 +118,23 @@ class Client:
     
     def command_loop(self):
         
-        commands = {"w": "north", "s": "south", "d": "east", "a": "west"}
+        commands = {
+            ord("w"): "north",
+            curses.KEY_UP: "north",
+            ord("s"): "south",
+            curses.KEY_DOWN: "south",
+            ord("d"): "east",
+            curses.KEY_RIGHT: "east",
+            ord("a"): "west",
+            curses.KEY_LEFT: "west"
+        }
         
         while self.keepalive:
             key = self.stdscr.getch()
             if key == ord('q'):
                 self.keepalive = False
-            if chr(key) in commands:
-                self.connection.send(json.dumps({"input":commands[chr(key)]}))
+            if key in commands:
+                self.connection.send(json.dumps({"input":commands[key]}))
 
 
 def main(name, socket):

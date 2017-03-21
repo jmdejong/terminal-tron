@@ -124,6 +124,7 @@ class Player:
     
     def die(self):
         self.game.removePlayer(self.name)
+        self.game.deaths += 1
         
 
 
@@ -135,6 +136,7 @@ class Game:
     field = None
     width = 0
     height = 0
+    deaths = 0
     
     def __init__(self, width, height):
         self.players = {}
@@ -173,5 +175,6 @@ class Game:
         return self.players[name].getControlInterface()
     
     def update(self):
+        self.deaths = 0
         for player in frozenset(self.players.values()):
             player.update()

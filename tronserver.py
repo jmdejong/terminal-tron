@@ -8,17 +8,18 @@ from game import Game
 from drawfield import DrawField
 import server
 import argparse
+import threading
 
 
-WIDTH = 40
-HEIGHT = 25
+WIDTH = 60
+HEIGHT = 30
 
 
 
 class PlayerConnection:
     
     name = ""
-    active = False
+    initialized = False
     data = ""
     score = 0 # todo: store this somewhere else
 
@@ -30,7 +31,7 @@ class PlayerConnection:
         #self.connection = connection
     
     #def isConnected(self):
-        #return self.connection.active
+        #return self.connection.initialized
 
 class TronGame:
     
@@ -42,6 +43,9 @@ class TronGame:
         self.players = {}
         
     def start(self, address="/tmp/tron_socket"):
+        
+        self.cv = threading.Condition()
+        
         self.serv.start(address)
         
         while True:
@@ -53,6 +57,18 @@ class TronGame:
         self.game = Game(WIDTH, HEIGHT)
         for player in self.connections.values():
             self.game.makePlayer(player.name)
+        
+        self.lobby_loop()
+        
+        self.game_loop()
+        
+        endTime = time.time()
+        while time.time() - endTime < 4.0:
+            self.sendState()
+            time.sleep(0.2)
+    
+    def lobby_loop(self):
+        
         readydate = time.time()
         while True:
             
@@ -63,19 +79,15 @@ class TronGame:
                     self.game.makePlayer(name)
                 
             if not self.game.countPlayers():
+                with self.cv:
+                    self.cv.wait()
                 readydate = time.time()
             if time.time() - readydate > 4.0:
                 break
             
             self.sendState()
             time.sleep(0.2)
-        
-        self.game_loop()
-        
-        endTime = time.time()
-        while time.time() - endTime < 4.0:
-            self.sendState()
-            time.sleep(0.2)
+    
     
     def game_loop(self):
         
@@ -97,7 +109,7 @@ class TronGame:
         
         lastCount = self.game.countPlayers()
         self.game.update()
-        if self.game.countPlayers() < lastCount:
+        if self.game.deaths:
             for c in self.connections.values():
                 if c.name in self.game.players:
                     c.score += 1
@@ -113,13 +125,15 @@ class TronGame:
             "field": output,
             "width": WIDTH,
             "height": HEIGHT,
-            "players": {c.name: c.score for c in self.connections.values() if c.active}
+            "players": {c.name: c.score for c in self.connections.values() if c.initialized}
         }
         
         self.serv.broadcast(bytes(json.dumps(data), 'utf-8'))
     
     def newConnection(self, n):
         self.connections[n] = PlayerConnection()
+        with self.cv:
+            self.cv.notify()
     
     def receive(self, n, data):
         data = json.loads(data.decode('utf-8'))
@@ -130,7 +144,7 @@ class TronGame:
                 self.serv.send(n, bytes(json.dumps({"error":"nametaken"}), "utf-8"))
             else:
                 c.name = name
-                c.active = True
+                c.initialized = True
                 #if c.name in self.players:
                     #self.players[name].connection = n
                 #else:
@@ -144,10 +158,11 @@ class TronGame:
         return {p.name for p in self.connections.values()}
     
     def close(self, connection):
-        if self.game and connection in self.connections:
-            self.game.removePlayer(self.connections[connection].name)
+        if connection in self.connections:
+            if self.game:
+                self.game.removePlayer(self.connections[connection].name)
             print("player "+self.connections[connection].name+" left")
-            #self.connections[connection].active = False
+            #self.connections[connection].initialized = False
             del self.connections[connection]
         
 

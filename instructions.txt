@@ -1,8 +1,9 @@
 
-Start the client by running './client.py' or 'python3 client.py'
+Start the client by executing playtron.py
+This will connect to the default socket.
 The client can take a name as optional argument using the option '-n'
 
-Start the server by running './tronserver.py'.
+Start the server by executing hosttron.py.
 If it gives a permission error, try another socket file.
 Use the '-s' option to select a socket file somewhere where you have permissions.
 IF ANY FILE EXISTS AT THAT PATH IT WILL BE OVERWRITTEN.

@@ -9,6 +9,7 @@ from drawfield import DrawField
 import server
 import argparse
 import threading
+import os
 
 
 WIDTH = 60
@@ -47,10 +48,11 @@ class TronGame:
         self.cv = threading.Condition()
         
         self.serv.start(address)
-        
-        while True:
-            self.game_round()
-        
+        try:
+            while True:
+                self.game_round()
+        finally:
+            os.unlink(address)
         
     
     def game_round(self):

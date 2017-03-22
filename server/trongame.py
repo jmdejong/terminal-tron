@@ -27,8 +27,16 @@ class TronGame:
         try:
             while True:
                 self.game_round()
+        except Exception:
+            raise
         finally:
             os.unlink(address)
+        
+        def cleanup():
+            print("cleaning")
+            os.unlink(address)
+        
+        signal.signal(signal.SIGTERM, cleanup)
         
     
     def game_round(self):
@@ -47,6 +55,7 @@ class TronGame:
     
     def lobby_loop(self):
         
+        self.sendState()
         readydate = time.time()
         while True:
             
@@ -56,14 +65,17 @@ class TronGame:
                 if name not in self.game.players:
                     self.game.makePlayer(name)
                 
-            if not self.game.countPlayers():
+            self.sendState()
+            
+            if not len(self.players):
                 with self.cv:
+                    print("sleeping")
                     self.cv.wait()
+                    print("awake!")
                 readydate = time.time()
             if time.time() - readydate > 4.0:
                 break
             
-            self.sendState()
             time.sleep(0.2)
     
     

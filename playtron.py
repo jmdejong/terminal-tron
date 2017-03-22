@@ -17,6 +17,7 @@ import client
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', '--name', help='Your player name (must be unique!). Defaults to username', default=getpass.getuser())
 parser.add_argument('-s', '--socket', help='The socket file to connect to. Defaults to /tmp/tron_socket', default="/tmp/tron_socket")
+parser.add_argument('-p', '--spectate', help='Join as spectator', action="store_true")
 args = parser.parse_args()
 
-client.main(args.name, args.socket)
+client.main(args.name, args.socket, args.spectate)

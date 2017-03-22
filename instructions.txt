@@ -6,7 +6,6 @@ Start the client by executing playtron.py
 This will connect to the default socket.
 The client can take a name as optional argument using the option '-n'
 
-
 Start the server by executing hosttron.py.
 If it gives a permission error, try another socket file.
 Use the '-s' option to select a socket file somewhere where you have permissions.
@@ -22,6 +21,11 @@ Don't hit a wall. If you hit a wall you die.
 If a player dies, all living players will get 1 point.
 A round ends when all players have died.
 Your score is reset when disconnecting.
+
+
+
+
+The client may show some blinking/flashing when used in a multiplexer like tmux or screen.
 
 
 

@@ -6,8 +6,8 @@ if sys.version_info[0] < 3:
     print("This game is written in python 3.\nRun 'python3 "+sys.argv[0]+"' or './"+sys.argv[0]+"'")
     sys.exit(-1)
 
-sys.path.append("./client/")
-sys.path.append("./shared/")
+sys.path.append(sys.path[0]+"/client/")
+sys.path.append(sys.path[0]+"/shared/")
 
 import argparse
 import getpass

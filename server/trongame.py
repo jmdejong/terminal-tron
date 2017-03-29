@@ -7,6 +7,8 @@ import argparse
 import threading
 import time
 import os
+import signal
+import sys
 
 WIDTH = 60
 HEIGHT = 30
@@ -21,6 +23,20 @@ class TronGame:
         
     def start(self, address="/tmp/tron_socket"):
         
+        
+        
+        def cleanup(*args):
+            print(args)
+            print("cleaning")
+            try:
+                os.unlink(address)
+            except FileNotFoundError:
+                if os.path.exists(address):
+                    raise
+            sys.exit(0)
+        
+        signal.signal(signal.SIGTERM, cleanup)
+        
         self.cv = threading.Condition()
         
         self.server.start(address)
@@ -30,13 +46,13 @@ class TronGame:
         except Exception:
             raise
         finally:
-            os.unlink(address)
+            try:
+                os.unlink(address)
+            except FileNotFoundError:
+                print("catching")
+                if os.path.exists(address):
+                    raise
         
-        def cleanup():
-            print("cleaning")
-            os.unlink(address)
-        
-        signal.signal(signal.SIGTERM, cleanup)
         
     
     def game_round(self):

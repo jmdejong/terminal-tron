@@ -16,6 +16,12 @@ class Server:
     
     
     def start(self, address):
+        
+        try:
+            os.unlink(address)
+        except FileNotFoundError:
+            if os.path.exists(address):
+                raise
         try:
             
             self.sock.bind(address)

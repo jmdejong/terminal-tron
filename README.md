@@ -28,8 +28,4 @@ See instructions.txt for the latest usage documentation.
                             /tmp/tron_socket
       -p, --spectate        Join as spectator
 
-# Known bugs
 
-The socket file is not removed when the server is killed.
-Please do this manually after killing the server.
-If anyone happens to know how to do this correctly, please tell me.

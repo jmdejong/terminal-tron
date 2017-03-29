@@ -6,14 +6,7 @@ def send(sock, msg):
     length = len(msg)
     header = length.to_bytes(4, byteorder="big")
     totalmsg = header + msg
-    #totallength = length + 4
     sock.sendall(totalmsg)
-    #totalsent = 0
-    #while totalsent < totallength:
-        #sent = sock.send(totalmsg[totalsent:])
-        #if sent == 0:
-            #raise RuntimeError("socket connection broken")
-        #totalsent = totalsent + sent
 
 def receive(sock):
     header = sock.recv(4)

@@ -17,12 +17,7 @@ parser.add_argument('-s', '--socket', help='The socket file to listen to.\nThis 
 args = parser.parse_args()
 
 try:
-    while True:
-        try:
-            trongame.TronGame().start(args.socket)
-        except Exception as err:
-            # In case of a normal exception, restart instead of die
-            print(err)
+    trongame.TronGame().start(args.socket)
 finally:
     # in case of an abnormal exception, do the cleanup
     print("base exception")

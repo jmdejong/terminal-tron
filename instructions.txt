@@ -2,10 +2,23 @@
 
 --- Starting ---
 
+-- client --
+
 Start the client by executing playtron.py
+The command 'tron' should work now too.
 This will connect to the default socket.
 The client can take a name as optional argument using the option '-n'
 
+-- troubleshooting --
+
+If the client crashes, this could be because the server is not running
+If this happens, wait a minute. Cron should restart the server.
+If this does not happen, contact me.
+
+-- server --
+
+The server should be running permanently.
+This is for if you want to run your own server
 Start the server by executing hosttron.py.
 If it gives a permission error, try another socket file.
 Use the '-s' option to select a socket file somewhere where you have permissions.
@@ -23,10 +36,6 @@ A round ends when all players have died.
 Your score is reset when disconnecting.
 
 
-
-
 The client may show some blinking/flashing when used in a multiplexer like tmux or screen.
-
-
 
 If anything doesn't work, please contact me or leave something in feedback.txt
